@@ -12,6 +12,12 @@ func (ss *SimpleString) ToBytes() []byte {
 	return []byte("+" + ss.Data + CRLF)
 }
 
+func (ss *SimpleString) ToArgs() [][]byte {
+	args := make([][]byte, 1)
+	args[0] = []byte(ss.Data)
+	return args
+}
+
 type OK struct {
 }
 

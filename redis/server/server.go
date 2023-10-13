@@ -82,31 +82,8 @@ func (s *server) handle(ctx context.Context, conn net.Conn) {
 		mylog.Logger.Info(fmt.Sprintf("接收到数据: %v", payLoad.Data.ToBytes()))
 		// TODO 执行命令
 		array := payLoad.Data.(*protocol.Array)
-		if len(array.Data[0].ToBytes()) == 9 {
-			if string(array.Data[0].ToBytes()[4:7]) == "set" {
-				keyLen := len(array.Data[1].ToBytes()) - 6
-				key := string(array.Data[1].ToBytes()[4 : 4+keyLen])
-				valueLen := len(array.Data[2].ToBytes()) - 6
-				value := string(array.Data[2].ToBytes()[4 : 4+valueLen])
-				count := s.db.Set(key, value)
-				reply := &protocol.Integer{Data: count}
-				conn.Write(reply.ToBytes())
-			} else if string(array.Data[0].ToBytes()[4:7]) == "get" {
-				keyLen := len(array.Data[1].ToBytes()) - 6
-				key := string(array.Data[1].ToBytes()[4 : 4+keyLen])
-				value, err := s.db.Get(key)
-				if err != nil {
-					reply := &protocol.Error{Data: err.Error()}
-					conn.Write(reply.ToBytes())
-				} else {
-					reply := &protocol.SimpleString{Data: value}
-					conn.Write(reply.ToBytes())
-				}
-			}
-		} else {
-			conn.Write(protocol.OkReply.ToBytes())
-		}
-
+		result := s.db.Execute(array.ToArgs())
+		conn.Write(result.ToBytes())
 	}
 	mylog.Logger.Info("接收完成")
 }
